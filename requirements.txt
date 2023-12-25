@@ -1,3 +1,10 @@
-altair
-pandas
-streamlit
+pip install google-api-python-client
+pip install sqlalchemy
+pip install mysqlclient
+
+import googleapiclient.discovery
+from googleapiclient.discovery import build
+import pymongo
+import pandas as pd
+import sqlalchemy as sa
+import streamlit as st
