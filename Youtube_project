@@ -1,7 +1,12 @@
+pip install google-api-python-client
+pip install sqlalchemy
+pip install mysqlclient
+
 import googleapiclient.discovery
 from googleapiclient.discovery import build
 import pymongo
 import pandas as pd
+import sqlalchemy as sa
 import streamlit as st
 
 api_service_name = "youtube"
@@ -309,8 +314,8 @@ create_query = '''CREATE TABLE IF NOT EXISTS youtube.comment_information (
                    comment_id VARCHAR(255),
                    video_id VARCHAR(255),
                    comment_text TEXT,
-                   comment_author TEXT,
-                   commented_on VARCHAR(255)
+                   comment_author VARCHAR(255),
+                   commented_on DATETIME
                 )'''
 
 try:
@@ -443,93 +448,46 @@ mycon = mysql.connector.connect(
 )
 mycursor = mycon.cursor()
 
-question = st.selectbox("select your question",("1. What are the names of all the videos and their corresponding channels?",
-                                                       "2. Which channels have the most number of videos, and how many videos do they have?",
-                                                       "3. What are the top 10 most viewed videos and their respective channels?",
-                                                       "4. How many comments were made on each video, and what are theircorresponding video names?",
-                                                       "5. Which videos have the highest number of likes, and what are their corresponding channel names?",
-                                                       "6. What is the total number of likes and dislikes for each video, and what are their corresponding video names?",
-                                                       "7. What is the total number of views for each channel, and what are their corresponding channel names?",
-                                                       "8. What are the names of all the channels that have published videos in the year 2022?",
-                                                       "9. What is the average duration of all videos in each channel, and what are their corresponding channel names?",
-                                                       "10. Which videos have the highest number of comments, and what are their corresponding channel names?"))
+
+question = st.selectbox("Select your question", [
+    "What are the names of all the videos and their corresponding channels?",
+    "Which channels have the most number of videos, and how many videos do they have?",
+    "What are the top 10 most viewed videos and their respective channels?",
+    "How many comments were made on each video, and what are their corresponding video names?",
+    "Which videos have the highest number of likes, and what are their corresponding channel names?",
+    "What is the total number of likes and dislikes for each video, and what are their corresponding video names?",
+    "What is the total number of views for each channel, and what are their corresponding channel names?",
+    "What are the names of all the channels that have published videos in the year 2022?",
+    "What is the average duration of all videos in each channel, and what are their corresponding channel names?",
+    "Which videos have the highest number of comments, and what are their corresponding channel names?"
+])
+
+connection_string = 'mysql://root:12345@localhost:3306/youtube'
+engine = sa.create_engine(connection_string)
 
 if question == "What are the names of all the videos and their corresponding channels?":
-    connection_string = ('root@localhost:3306')
-    result = sa.create_result(connection_string)
-    result.connect()
-    query1 = "select * from  youtube.video_name"
-    t1=pd.read_sql(query1, result)
-    st.dataframe(t1)
+    query = "SELECT channel_name, video_name from video_information"
+elif question == "Which channels have the most number of videos, and how many videos do they have?":
+    query = "SELECT channel_name, channel_video_count FROM youtube.channel_information  where channel_video_count=(select max(channel_video_count) from youtube.channel_information)"
+elif question == "What are the top 10 most viewed videos and their respective channels?":
+    query = "SELECT channel_name, video_views FROM video_information where video_views is not null order by video_views desc limit 10"
+elif question == " How many comments were made on each video, and what are theircorresponding video names?":
+    query = "SELECT video_name,video_comment_count FROM youtube.video_information"
+elif question == "Which videos have the highest number of likes, and what are their corresponding channel names?":
+    query = "select channel_name, video_likes from  youtube.video_information where video_likes is not null order by video_likes desc"
+elif question == "What is the total number of likes and dislikes for each video, and what are their corresponding video names?":
+    query = "SELECT video_name,video_likes  FROM youtube.video_information"
+elif question == "What is the total number of views for each channel, and what are their corresponding channel names?":
+    query = "SELECT channel_name,channel_views FROM youtube.channel_information order by channel_views desc"
+elif question == "What are the names of all the channels that have published videos in the year 2022?":
+    query = "SELECT channel_name, video_date   FROM youtube.video_information"
+elif question == "What is the average duration of all videos in each channel, and what are their corresponding channel names?":
+    query = "select video_duration, channel_name from youtube.video_information where video_duration=(select avg(video_duration) from youtube.video_information)"
+elif question == "Which videos have the highest number of comments, and what are their corresponding channel names?":
+    query = "select video_comment_count, channel_name from video_information where video_comment_count=(select max(video_comment_count) from video_information)"
 
-if question == "Which channels have the most number of videos, and how many videos do they have?":
-    connection_string = ('root@localhost:3306')
-    result = sa.create_result(connection_string)
-    result.connect()
-    query2 = "SELECT channel_name, channel_video_count FROM youtube.channel_information  where channel_video_count=(select max(channel_video_count) from youtube.channel_information);"
-    t2=pd.read_sql(query2, result)
-    st.dataframe(t2)
+with engine.connect() as connection:
+    result_df = pd.read_sql(query, connection)
 
-if question == "What are the top 10 most viewed videos and their respective channels?":
-    connection_string = ('root@localhost:3306')
-    result = sa.create_engine(connection_string)
-    result.connect()
-    query3 = "SELECT video_views  FROM video_information where video_views=(select max(video_views) from youtube.video_information);"
-    t3=pd.read_sql(query3, result)
-    st.dataframe(t3)
+st.dataframe(result_df)
 
-if question == "How many comments were made on each video, and what are their and corresponding video names?":
-    connection_string = ('root@localhost:3306')
-    result = sa.create_engine(connection_string)
-    result.connect()
-    query4 = "SELECT video_name,video_comment_count FROM youtube.video_information"
-    t4=pd.read_sql(query4, result)
-    st.dataframe(t4)
-
-if question == "Which videos have the highest number of likes, and what are their corresponding channel names?":
-    connection_string = ('root@localhost:3306')
-    result = sa.create_engine(connection_string)
-    result.connect()
-    query5 = "select channel_name, video_likes from  video_information where video_likes=(select max(video_likes) from youtube.video_information)"
-    t5=pd.read_sql(query5, result)
-    st.dataframe(t5)
-
-if question == "What is the total number of likes and dislikes for each video, and what are their corresponding video names?":
-    connection_string = ('root@localhost:3306')
-    result = sa.create_engine(connection_string)
-    result.connect()
-    query6 = "SELECT video_name,video_likes  FROM youtube.video_information"
-    t6=pd.read_sql(query6, result)
-    st.dataframe(t6)
-
-if question == "What is the total number of views for each channel, and what are their corresponding channel names?":
-    connection_string = ('root@localhost:3306')
-    result = sa.create_engine(connection_string)
-    result.connect()
-    query7 = "SELECT channel_name,channel_views FROM youtube.channel_information order by channel_views desc;"
-    t7=pd.read_sql(query7, result)
-    st.dataframe(t7)
-
-if question == "What are the names of all the channels that have published videos in the year 2022?":
-    connection_string = ('root@localhost:3306')
-    result = sa.create_engine(connection_string)
-    result.connect()
-    query8 = "SELECT channel_name, video_date   FROM youtube.video_information;"
-    t8=pd.read_sql(query8, result)
-    st.dataframe(t8)
-
-if question == "  What is the average duration of all videos in each channel, and what are their corresponding channel names?":
-    connection_string = ('root@localhost:3306')
-    result = sa.create_engine(connection_string)
-    result.connect()
-    query9 = "select video_duration, channel_name from youtube.video_information where video_duration=(select avg(video_duration) from youtube.video_information);"
-    t9=pd.read_sql(query9, result)
-    st.dataframe(t9)
-
-if question == " Which videos have the highest number of comments, and what are their corresponding channel names?":
-    connection_string = ('root@localhost:3306')
-    result = sa.create_engine(connection_string)
-    result.connect()
-    query10 = "select video_comment_count, channel_name from video_information where video_comment_count=(select max(video_comment_count) from video_information);"
-    t10=pd.read_sql(query10, result)
-    st.dataframe(t10)
