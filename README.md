@@ -9,13 +9,49 @@ The problem statement is to create a Streamlit application that allows users to 
  Option to select a channel name and migrate its data from the data lake to a SQL database as tables.
 Ability to search and retrieve data from the SQL database using different search options, including joining tables to get channel details.
 
-Tools used
+Tools used:
 
 Python
 Google Client Library
 MongoDB
 MySQL
+Streamlit 
 
+Flow chart:
+1. User Interface
+   |
+   v
+2. Accept YouTube Channel ID and API Key
+   |
+   v
+3. Use Google API to Retrieve Data
+   |
+   v
+4. Display Retrieved Data in Streamlit
+   |
+   v
+5. Data Storage Options
+   |
+   |---> [Store in MongoDB (Data Lake)]
+   |     |
+   |     v
+   |     6. Store Channel, Video, and Comment Data
+   |
+   |---> [Store in SQL Database (Data Warehouse)]
+         |
+         v
+         7. Data Modeling: Create Database Structure (MySQL)
+         |
+         v
+         8. Transform and Store Data in MySQL
+         |
+         v
+         9. Create Views for SQL Statements
+         |
+         v
+         10. Display Data Analysis Results in Streamlit
+
+Outcome:
 Data harvesting: Using the "streamlit" Python library, which provides an interface for users to enter a YouTube channel ID and an API ID. Get data from YouTube videos and channels using the Python package for Google API client library.
 
 Store semi-structured data in datalake: Store the fetched semi-structured data in a MongoDB database with 3 different collection names (Channels, Videos, Comments).
