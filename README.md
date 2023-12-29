@@ -18,6 +18,7 @@ MySQL
 Streamlit 
 
 Flow chart:
+
 1. User Interface
    |
    v
@@ -52,6 +53,7 @@ Flow chart:
          10. Display Data Analysis Results in Streamlit
 
 Outcome:
+
 Data harvesting: Using the "streamlit" Python library, which provides an interface for users to enter a YouTube channel ID and an API ID. Get data from YouTube videos and channels using the Python package for Google API client library.
 
 Store semi-structured data in datalake: Store the fetched semi-structured data in a MongoDB database with 3 different collection names (Channels, Videos, Comments).
